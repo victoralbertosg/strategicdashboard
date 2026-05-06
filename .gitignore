@@ -1,70 +1,21 @@
 # ==============================================================================
-# .gitignore for Academic Claude Code Projects
+# .gitignore for Strategic Dashboard
 # ==============================================================================
-
-# LaTeX build artifacts
-*.aux
-*.bbl
-*.blg
-*.fdb_latexmk
-*.fls
-*.log
-*.nav
-*.out
-*.snm
-*.toc
-*.vrb
-*.synctex.gz
-*.run.xml
-*-blx.bib
-
-# Compiled PDFs (uncomment to track specific PDFs)
-# *.pdf
 
 # Python
 __pycache__/
 *.pyc
 *.pyo
-
-# R
-.Rproj.user/
-.Rhistory
-.RData
-.Rdata
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Claude Code local files (not shared across machines)
-.claude/settings.local.json
-.claude/state/*
-!.claude/state/*.example
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Quarto rendering artifacts
-/.quarto/
-paper/quarto/*_files/
-paper/quarto/.quarto/
-
-# Output artifacts — uncomment lines below based on your preference
-# *.rds
-# output/**/*.rds
-docs/
-
-# Virtual Environment
 venv/
 .venv/
 env/
 .env/
 
-# Data and Models (Large files)
+# OS files
+.DS_Store
+Thumbs.db
+
+# Large models
 *.pkl
 *.joblib
 *.npy
@@ -72,4 +23,19 @@ env/
 *.onnx
 *.pb
 *.h5
-data/
+
+# Omission of non-executable folders (User Request)
+.claude/
+.github/
+explorations/
+guide/
+master_supporting_docs/
+paper/
+quality_reports/
+templates/
+
+# Omission of non-essential files (User Request)
+CHANGELOG.md
+CLAUDE.md
+dashboard.md
+MEMORY.md
