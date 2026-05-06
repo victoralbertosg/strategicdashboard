@@ -1,0 +1,36 @@
+En esta sección delineamos el flujo de arquitectura computacional híbrida (Machine Learning y Business Intelligence) diseñada para identificar, medir y accionar el desgaste de clientes en el entorno de telecomunicaciones.
+
+\subsection{Procesamiento de Datos y Componente Predictivo}
+El punto de partida del diseño consiste en el modelo de regresión o ensembilado. Asumimos un vector de covariables $x_i$ que engloba tanto métricas demográficas como el uso mensual y ciclo de servicio para un cliente determinado $i$. La variable dependiente del interés es la fuga binaria del cliente observada de forma histórica: 
+
+\begin{equation}
+y_i \in \{0, 1\}
+\end{equation}
+
+Empleamos el algoritmo Extreme Gradient Boosting (XGBoost) para optimizar un objetivo de pérdida logarítmica (log-loss), en vista de su capacidad excepcional para capturar no linealidades en datos tabulares y ser ávidamente decodificado a través del formalismo de valores de Shapley. 
+La probabilidad inferida por nuestro modelo resultante se denotará de aquí en adelante como el puntaje de predicción probabilístico (Score Predictivo): $\hat{y}_i = P(y_i=1 | x_i)$.
+
+\subsection{Inteligencia Artificial Explicable (XAI) mediante Valores SHAP}
+Para transicionar de un ambiente de "caja negra" a un Sistema de Soporte de Decisiones (DSS), integramos SHAP (SHapley Additive exPlanations). Los valores SHAP transforman la salida predictiva $\hat{y}_i$ en combinaciones lineares aditivas del aporte causal de cada atributo individual:
+
+\begin{equation}
+\hat{y}_i = \phi_0 + \sum_{j=1}^{M} \phi_{ij}
+\end{equation}
+
+donde $\phi_0$ representa el valor base esperado del dataset y $\phi_{ij}$ es el valor cuasi-causal aportado por la variable de servicio $j$. Esta arquitectura es fundamental, pues en el sistema final (BI) los agentes comerciales pueden dirigir retenciones leyendo exclusivamente los vectores de peso $\phi$ locales del cliente sin reentrenar el motor principal.
+
+\subsection{Arquitectura Interactiva Basada en Rentabilidad (Profit-driven BI)}
+Tradicionalmente, en la literatura analítica, la precisión se evalúa con el AUC o la métrica F1. Sin embargo, para responder a nuestra hipótesis, proponemos una \textit{Matriz de Confusión Guiada por Rentabilidad} implementada virtualmente. 
+Se define el retorno de acción (ROI) basado en costos asimétricos:
+\begin{itemize}
+    \item \textbf{Costo de Retención ($C_R$):} El incentivo económico enviado bajo el criterio de que el usuario fugara (usualmente falsos positivos $FP$).
+    \item \textbf{Ingreso Salvado ($I_S$ o $LTV$):} Valor conservado cuando un cliente efectivamente en riesgo acepta la retención (verdaderos positivos $TP$).
+\end{itemize}
+
+El Dashboard de Streamlit (aplicación base BI) realiza el cruce instantáneo entre los scores del modelo algorítmico y los valores estáticos financieros introducidos interactivamente por los directivos. El gerente define un Umbral de Decisión Acotado ($\tau$) que transforma probabilísticamente al sujeto logrando estimar la rentabilidad macro por cohorte evaluada: 
+
+\begin{equation}
+  \text{Ganancia Neta} = \left( \sum_{i=1}^{N_{\text{TP}}} (I_S - C_R) \right) - \left( \sum_{i=1}^{N_{\text{FP}}} C_R \right)
+\end{equation}
+
+Esta orquestación garantiza que el modelo predictivo posea una injerencia mensurable en el ecosistema comercial de la empresa. En el siguiente escenario (sección empírica), expondremos la validación de estos pilares utilizando nuestra integración con un set empírico Telco.

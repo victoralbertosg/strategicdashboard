@@ -57,3 +57,19 @@ paper/quarto/.quarto/
 # *.rds
 # output/**/*.rds
 docs/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+.env/
+
+# Data and Models (Large files)
+*.pkl
+*.joblib
+*.npy
+*.pth
+*.onnx
+*.pb
+*.h5
+data/

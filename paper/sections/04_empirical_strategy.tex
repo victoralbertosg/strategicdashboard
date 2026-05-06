@@ -1,0 +1,23 @@
+En este apartado detallamos las propiedades del entorno experimental, el conjunto de datos administrado y la estrategia algorítmica utilizada para evaluar el framework teórico planteado en la sección anterior.
+
+\subsection{Conjunto de Datos Financieros}
+Nuestra evaluación empírica descansa sobre el \textit{IBM Telco Customer Churn Dataset}, un estándar en la literatura analítica conformado por registros agregados referenciados en un eje de tiempo transversal de 7,043 clientes. 
+
+Las dimensiones cardinales del conjunto de datos incluyen:
+\begin{itemize}
+    \item \textbf{Atributos demográficos:} Incluyen perfiles como titularidad, dependientes y estado civil.
+    \item \textbf{Suscripción a Servicios:} Variables categóricas denotando seguridad en red, protección de dispositivo y volumen contratado.
+    \item \textbf{Factor Financiero:} \textit{MonthlyCharges} (Cargos Mensuales) y \textit{TotalCharges} (Cargos Acumulados), los cuales servirán paramétricamente para extraer el proxy del LTV (Valor de Vida del Cliente).
+\end{itemize}
+
+Durante el pre-procesamiento, vectorizamos todas las características categóricas (One-Hot / Labeling). Los clientes con valores nulos inicializados en cargos acumulados se reclasificaron con valor 0 (clientes nuevos en su primer mes). La matriz purgada constó del 100\% de las trazas iniciales para el ensamble.
+
+\subsection{Diseño Experimental y Modelamiento Predictivo}
+Para la división transversal, aplicamos una segmentación estratificada reteniendo el 80\% ($N=5,634$) de los perfiles en el conjunto de entrenamiento (Train) y reservando el 20\% ciego ($N=1,409$) para inferencia causal y test empírico. 
+
+El núcleo predictivo consta de un ensamble de \textit{Gradient Boosting Trees} (XGBoost). Este se configuró con profundidad restrictiva (\textit{max\_depth} = 5) y tasa de aprendizaje conservadora (\textit{learning\_rate} = 0.1) acoplado a un bloque de 100 estimadores. Las hiperparametrizaciones minimizan deliberadamente eventos de \textit{overfitting} sobre el espacio de características nominales de 20 variables.
+
+\subsection{Proyección a Inteligencia de Negocios y Función de Costos}
+Una vez obtenidas las proyecciones en el ambiente de inferencia (Test Set), transferimos los perfiles a nuestra plataforma virtual. En lugar de limitarnos a reportar la Curva Característica Operativa (ROC), evaluamos el alcance monetario sometiendo todo el lote de pruebas ($N_{test}$) a una política comercial hipotética de rescate.
+
+Se configura a priori un costo operativo $C_R=50$ USD referenciando un descuento asimilable por el sistema e ingresado interactiva, con un LTV de retención proyectado $I_S=300$ USD. El dashboard (BI) reescala entonces el umbral crítico $\tau$ (Threshold) para dictaminar empíricamente qué porcentaje de alertas modeladas por XGBoost resultan factibles y eficientes sin decantar en un gasto infructuoso de adquisición. Simultáneamente, por cada perfil, se conjuga la métrica de SHAP de manera tabular para explicarle a los visores de Inteligencia de Negocios los impulsores demográficos detrás de su propensión al desgaste.

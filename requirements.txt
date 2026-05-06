@@ -1,0 +1,16 @@
+# Core dependencies for AI Churn Research
+numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+torch
+torchvision
+torchaudio
+xgboost
+shap
+scipy
+jsonlines
+pyyaml
+tqdm
+streamlit

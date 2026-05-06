@@ -5,9 +5,9 @@
      Keep this file under ~150 lines — Claude loads it every session.
      See the guide at https://hugosantanna.github.io/clo-author/ for full documentation. -->
 
-**Project:** [YOUR PROJECT NAME]
+**Project:** Empirical AI Research on Customer Churn
 **Institution:** [YOUR INSTITUTION]
-**Field:** [YOUR FIELD — Economics by default. Can be adapted to Finance, Accounting, Marketing, etc.]
+**Field:** AI Research (Marketing Analytics)
 **Branch:** main
 
 ---
@@ -134,7 +134,7 @@ Output organization: by-script
 
 | Component | File | Status | Description |
 |-----------|------|--------|-------------|
-| Paper | `paper/main.tex` | [draft/submitted/R&R] | [Brief description] |
-| Data | `scripts/R/` | [complete/in-progress] | [Analysis description] |
-| Replication | `paper/replication/` | [not started/ready] | [Deposit status] |
-| Job Market Talk | `paper/talks/job_market_talk.tex` | -- | [Status] |
+| Paper | `paper/main.tex` | [not started] | Main manuscript setup |
+| Data | `scripts/python/` | [in-progress] | Environment set up, structure ready |
+| Replication | `paper/replication/` | [not started] | -- |
+| Job Market Talk | `paper/talks/job_market_talk.tex` | -- | -- |
