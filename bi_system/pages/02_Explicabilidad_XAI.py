@@ -6,52 +6,70 @@ import sys
 import matplotlib.pyplot as plt
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from utils import load_data
+from utils import load_data, init_global_controls, get_current_shap_values
 
 st.set_page_config(page_title="Explicabilidad y Diagnóstico", layout="wide")
+init_global_controls()
+
 st.title("🧩 Módulo 2: Diagnóstico Causal (XAI)")
-st.markdown("A diferencia de sistemas antiguos que operaban como una 'caja negra' donde nadie sabía por qué tomaban decisiones, **nuestra tecnología nos explica los motivos detrás de cada alerta**. Aquí desglosamos por qué la gente se quiere ir.")
+st.markdown(f"Nuestra tecnología le explica los motivos detrás de cada alerta generada por el modelo **{st.session_state.current_model_name}**.")
 
 df = load_data()
 if df is None:
     st.error("Faltan datos.")
     st.stop()
 
-shap_cols = [c for c in df.columns if c.endswith('_SHAP')]
-features = [c.replace('_SHAP', '') for c in shap_cols]
+# Obtener SHAP values para el modelo actual
+shap_values, feature_names = get_current_shap_values(st.session_state.current_model_name)
+shap_cols = [f"{col}_SHAP" for col in feature_names]
 
-st.subheader("🔸 Visión Panorámica: ¿De qué cojea nuestro negocio?")
-st.markdown("¿Cuáles son los factores más determinantes a nivel macro? Estas son las características de su servicio que más afectan si el cliente decide quedarse o irse a la competencia.")
+# Crear un dataframe temporal con los SHAP values
+shap_df = pd.DataFrame(shap_values, columns=shap_cols, index=df.index)
+df_full = pd.concat([df, shap_df], axis=1)
 
-global_shap_importance = df[shap_cols].abs().mean().sort_values(ascending=True)
-fig, ax = plt.subplots(figsize=(10,6))
-global_shap_importance.plot(kind='barh', ax=ax, color='skyblue')
-ax.set_yticklabels([c.replace('_SHAP', '') for c in global_shap_importance.index])
-ax.set_xlabel("Nivel de Culpa/Impacto General")
-ax.set_title("Las características comerciales que más mueven la balanza")
-st.pyplot(fig)
+col_main, col_gui = st.columns([2, 1])
 
-st.divider()
+with col_main:
+    st.subheader("🔸 Visión Panorámica: ¿De qué cojea nuestro negocio?")
+    global_shap_importance = shap_df.abs().mean().sort_values(ascending=True)
+    fig, ax = plt.subplots(figsize=(10,6))
+    global_shap_importance.plot(kind='barh', ax=ax, color='skyblue')
+    ax.set_yticklabels([c.replace('_SHAP', '') for c in global_shap_importance.index])
+    ax.set_xlabel("Nivel de Impacto General")
+    st.pyplot(fig)
 
-st.subheader("🔸 Diagnóstico Individual Médico: Paciente por Paciente")
-st.markdown("Seleccione a un cliente diagnosticado en 'Peligro Inminente' para ver exactamente qué factores le están irritando y empujándolo a irse.")
+    st.divider()
 
-df['Nivel de Alerta'] = pd.cut(df['Predicted_Prob'], bins=[0, 0.3, 0.7, 1.0], labels=['Tranquilo', 'Cuidado', 'Peligro Inminente'])
-high_risk = df[df['Nivel de Alerta'] == 'Peligro Inminente'].sort_values(by='Predicted_Prob', ascending=False)
+    st.subheader("🔸 Diagnóstico Individual: Historial del Paciente")
+    umbral = st.session_state.umbral
+    high_risk = df_full[df_full['Predicted_Prob'] >= umbral].sort_values(by='Predicted_Prob', ascending=False)
 
-selected_id = st.selectbox("Busque el ID de un Cliente en Riesgo:", high_risk['customerID'])
+    if high_risk.empty:
+        st.warning("No hay clientes que superen el umbral de riesgo seleccionado.")
+    else:
+        selected_id = st.selectbox("Busque el ID de un Cliente en Riesgo:", high_risk['customerID'])
 
-if selected_id:
-    client_data = df[df['customerID'] == selected_id].iloc[0]
+        if selected_id:
+            client_data = df_full[df_full['customerID'] == selected_id].iloc[0]
+            client_shap = client_data[shap_cols]
+            client_shap.index = feature_names
+            client_shap = client_shap.sort_values(ascending=True)
+            
+            fig2, ax2 = plt.subplots(figsize=(8,5))
+            colors = ['firebrick' if v > 0 else 'forestgreen' for v in client_shap.values]
+            client_shap.plot(kind='barh', color=colors, ax=ax2)
+            st.pyplot(fig2)
+            st.info("🔴 **Rojo**: Empuja a irse | 🟢 **Verde**: Anima a quedarse")
+
+with col_gui:
+    st.info("### 📘 Guía Rápida para Directivos")
+    st.markdown(f"""
+    **¿Por qué este módulo es vital?**
+    La IA no es una "caja negra". Aquí vemos el **porqué** de sus decisiones.
     
-    shap_vals = client_data[shap_cols]
-    shap_vals.index = features
-    shap_vals = shap_vals.sort_values(ascending=True)
+    1.  **Visión Panorámica:** Le dice qué falla en la empresa a nivel general (ej. si el tipo de contrato está molestando a todos).
+    2.  **Diagnóstico Individual:** Es como un "análisis de sangre" del cliente. Antes de llamarlo, usted ya sabe cuál es su problema principal.
     
-    fig2, ax2 = plt.subplots(figsize=(8,4))
-    colors = ['firebrick' if v > 0 else 'forestgreen' for v in shap_vals.values]
-    shap_vals.plot(kind='barh', color=colors, ax=ax2)
-    ax2.set_xlabel("Fuerza del Motivo")
-    ax2.set_title(f"Motivaciones psicológicas o comerciales para el cliente {selected_id}")
-    st.pyplot(fig2)
-    st.info("🔴 **Barras Rojas**: Le están empujando a **IRSE** (Ej. Su costo mensual es alto, no tiene garantías).\n\n🟢 **Barras Verdes**: Le están animando a **QUEDARSE** (Ej. Está atado a un contrato largo, le gusta el servicio técnico).")
+    **Uso Estratégico:** 
+    Si la barra roja más larga es 'Contrato Mensual', la estrategia es ofrecerle pasar a un 'Contrato Anual' con descuento. Así la llamada de retención es quirúrgica y efectiva.
+    """)

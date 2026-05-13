@@ -3,115 +3,86 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import sys
 
-# Configuraciones de página
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from utils import load_data, init_global_controls, get_current_shap_values
+
 st.set_page_config(page_title="Telco Churn BI Dashboard", page_icon="📶", layout="wide")
+init_global_controls()
 
-# Rutas de datos
-DATA_PATH = 'data/cleaned/bi_ready_predictions.csv'
+st.title("📶 Dashboard Básico - Resumen de Operación")
+st.markdown("Vista simplificada que integra detección, impacto financiero y causas del riesgo.")
 
-@st.cache_data
-def load_data():
-    if os.path.exists(DATA_PATH):
-        df = pd.read_csv(DATA_PATH)
-        return df
-    else:
-        return None
+df = load_data()
+if df is None:
+    st.error("Faltan datos.")
+    st.stop()
 
-def main():
-    st.title("📶 Dashboard de Inteligencia de Negocios - Retención Predictiva")
-    st.markdown("Sistema de apoyo a la toma de decisiones. Integra predicciones de Machine Learning, interpretabilidad de resultados (XAI) y simulación de rentabilidad económica.")
+# KPIs Rápidos y Dinámicos
+total_customers = len(df)
+high_risk_customers = len(df[df['Predicted_Class'] == 1])
 
-    df = load_data()
+col1, col2, col3 = st.columns(3)
+col1.metric("Clientes Evaluados", f"{total_customers:,}")
+col2.metric("Clientes de Alto Riesgo", f"{high_risk_customers:,}")
+col3.metric("% de Cartera en Riesgo", f"{(high_risk_customers/total_customers)*100:.1f} %")
+
+st.divider()
+
+col_main, col_gui = st.columns([2, 1])
+
+with col_main:
+    # 1. EVALUACIÓN DE IMPACTO 
+    st.subheader("1. Impacto Financiero Proyectado")
+    costo_ret = 50
+    ingreso_sal = 300
     
-    if df is None:
-        st.warning(f"⚠️ No se encontró el dataset en '{DATA_PATH}'. Por favor ejecuta primero los scripts ETL y de Entrenamiento MLOps.")
-        return
-
-    # Paneles de control y simulación
-    st.sidebar.header("🎯 Parámetros Estratégicos")
-    riesgo_threshold = st.sidebar.slider("Umbral de Riesgo (Probabilidad de Churn)", 0.0, 1.0, 0.5, 0.05)
+    TP = len(df[(df['Predicted_Class'] == 1) & (df['Churn_Real'] == 1)])
+    FP = len(df[(df['Predicted_Class'] == 1) & (df['Churn_Real'] == 0)])
     
-    # KPIs Rápidos
-    total_customers = len(df)
-    high_risk_customers = len(df[df['Predicted_Prob'] >= riesgo_threshold])
-    
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Clientes Evaluados (Batch)", f"{total_customers:,}")
-    col2.metric("Clientes de Alto Riesgo", f"{high_risk_customers:,}")
-    col3.metric("% de Cartera en Riesgo", f"{(high_risk_customers/total_customers)*100:.1f} %")
-
-    st.divider()
-
-    # ----------------------------------------------------
-    # SECCIÓN 1: EVALUACIÓN DE IMPACTO FINANCIERO
-    # ----------------------------------------------------
-    st.header("1. Evaluación de Impacto Financiero")
-    st.markdown("Analice el rendimiento económico de la campaña de retención sugerida por el modelo. Compara la acción de intervenir prospectos de alto riesgo (Escenario B) frente a la inacción ante la falta de sistema predictivo (Escenario A).")
-    
-    c_col1, c_col2 = st.columns(2)
-    with c_col1:
-        costo_retencion = st.number_input("Costo de Retención por Cliente (Ej. Beneficio otorgado) [$]", value=50)
-    with c_col2:
-        ingreso_salvado = st.number_input("Valor Económico del Cliente (LTV/Facturación a salvar) [$]", value=300)
-
-    df['Intervencion'] = (df['Predicted_Prob'] >= riesgo_threshold).astype(int)
-    
-    TP = len(df[(df['Intervencion'] == 1) & (df['True_Churn'] == 1)])
-    FP = len(df[(df['Intervencion'] == 1) & (df['True_Churn'] == 0)])
-    FN = len(df[(df['Intervencion'] == 0) & (df['True_Churn'] == 1)])
-    
-    # Cálculos comparativos (similares a la página de simulación)
-    inversion_total = (TP + FP) * costo_retencion
-    ingreso_recuperado = TP * ingreso_salvado
-    
+    inversion_total = (TP + FP) * costo_ret
+    ingreso_recuperado = TP * ingreso_sal
     ganancia_neta = ingreso_recuperado - inversion_total
-    perdida_residual = FN * ingreso_salvado
 
     r_col1, r_col2 = st.columns(2)
-    r_col1.metric("Ganancia Neta (Aporte Económico del Modelo)", f"${ganancia_neta:,.2f}")
-    r_col1.caption("Cálculo: Ingresos recuperados de retenciones exitosas menos la inversión total de la campaña.")
-    r_col2.metric("Fuga Monetaria Residual (Fugas No Detectadas)", f"${perdida_residual:,.2f}", delta_color="inverse")
+    r_col1.metric("Ganancia Neta Estimada", f"${ganancia_neta:,.2f}")
+    r_col1.markdown("**Fórmula:** *Ganancia = (TP × LTV) - (Total_Int × Costo)*")
+    
+    r_col2.metric("Inversión Requerida", f"${inversion_total:,.2f}")
+    r_col2.caption(f"Cálculo: ({TP} + {FP}) × ${costo_ret} = ${inversion_total:,.2f}")
 
     st.divider()
 
-    # ----------------------------------------------------
-    # SECCIÓN 2: EXPLICABILIDAD (SHAP VALUES)
-    # ----------------------------------------------------
-    st.header("2. Inteligencia Artificial Explicable (XAI)")
-    st.markdown("Analice los factores causales que impulsan el desgaste en clientes de alto riesgo.")
+    # 2. XAI
+    st.subheader("2. Diagnóstico Causal")
+    selected_client = st.selectbox("Seleccione un ID de Cliente en Riesgo:", df[df['Predicted_Class'] == 1]['customerID'].head(10))
     
-    # Filtro de clientes afectados
-    risk_df = df[df['Predicted_Prob'] >= riesgo_threshold].copy()
-    
-    if len(risk_df) > 0:
-        st.dataframe(risk_df[['customerID', 'Predicted_Prob', 'True_Churn']].sort_values(by='Predicted_Prob', ascending=False).head(10))
+    if selected_client:
+        client_idx = df[df['customerID'] == selected_client].index[0]
+        shap_values, feature_names = get_current_shap_values(st.session_state.current_model_name)
         
-        selected_client = st.selectbox("Seleccione un ID de Cliente para ver causas anatómicas del Riesgo:", risk_df['customerID'])
+        # Obtener shap del cliente específico
+        # shap_values es [1409, 19], necesitamos el indice relativo en el test set
+        # df es el test set filtrado/cargado, su indice coincide con el de shap_values 
+        client_shap = pd.Series(shap_values[df.index.get_loc(client_idx)], index=feature_names).sort_values()
         
-        if selected_client:
-            client_data = risk_df[risk_df['customerID'] == selected_client].iloc[0]
-            
-            # Extraemos las columnas SHAP
-            shap_cols = [c for c in client_data.index if str(c).endswith('_SHAP')]
-            shap_values = client_data[shap_cols].copy()
-            # Quitamos el sufijo para visualizar
-            shap_values.index = [c.replace('_SHAP', '') for c in shap_cols]
-            
-            # Ordenamos por magnitud impacto absoluto
-            shap_values_sorted = shap_values.sort_values()
-            
-            fig, ax = plt.subplots(figsize=(8, 4))
-            # Coloreamos rojo si empuja a churn, verde si retiene
-            colors = ['red' if val > 0 else 'green' for val in shap_values_sorted.values]
-            shap_values_sorted.plot(kind='barh', color=colors, ax=ax)
-            ax.set_title(f"Impacto de Variables (SHAP) para el cliente {selected_client}")
-            ax.set_xlabel("Impacto en probabilidad de Churn (Log-Odds)")
-            st.pyplot(fig)
-            st.caption("🔴 Rojo: Factores que empujan al cliente a abandonar | 🟢 Verde: Factores que retienen al cliente")
-            
-    else:
-        st.info("No hay clientes que superen el umbral de riesgo actual.")
+        fig, ax = plt.subplots(figsize=(8, 4))
+        colors = ['red' if val > 0 else 'green' for val in client_shap.values]
+        client_shap.plot(kind='barh', color=colors, ax=ax)
+        ax.set_title(f"¿Por qué se va el cliente {selected_client}?")
+        st.pyplot(fig)
 
-if __name__ == '__main__':
-    main()
+with col_gui:
+    st.info("### 📘 Guía Rápida para Directivos")
+    st.markdown(f"""
+    **¿Qué controla este panel?**
+    Aquí puede ver un resumen ejecutivo de la operación bajo el modelo **{st.session_state.current_model_name}** usando métricas clave:
+    
+    *   **TP (Verdaderos Positivos):** Clientes en riesgo detectados correctamente.
+    *   **LTV (Lifetime Value):** Valor económico total de cada cliente.
+    *   **Ganancia Neta:** Es el dinero salvado: (**TP × LTV**) menos los costos de intervención.
+    *   **Diagnóstico:** Le permite "entrar en la mente" del cliente antes de llamarlo para saber qué le molesta.
+    
+    **Nota:** Si desea cambiar el tipo de Inteligencia Artificial o ajustar el **Umbral de Riesgo** para ver cómo cambian los cálculos, use la configuración en la izquierda.
+    """)
