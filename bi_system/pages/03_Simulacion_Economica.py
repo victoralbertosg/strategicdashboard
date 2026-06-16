@@ -124,7 +124,7 @@ with col_gui:
     *   **Fugas Reales:** **{TP + FN}** clientes (Verdaderos Positivos **{TP}** + Falsos Negativos **{FN}**).
     *   **Pérdida por Cliente ($LTV$):** ${clv_inv:,.2f} USD$.
     *   **Pérdida Económica Total:** 
-        $$({TP} + {FN}) \times \${clv_inv} = \mathbf{{-\${perdida_escenario_A:,.2f} \text{{ USD}}}}$$
+        $$({TP} + {FN}) \times {clv_inv} \text{{ USD}} = \mathbf{{-{perdida_escenario_A:,.2f} \text{{ USD}}}}$$
         
     ---
     
@@ -133,24 +133,24 @@ with col_gui:
     
     1.  **Inversión en Retención:**
         Gastamos el Costo de Retención (${costo_retencion:,.2f} USD) por cada uno de los **{TP + FP}** clientes intervenidos.
-        $$\text{{Inversión}} = ({TP} + {FP}) \times \${costo_retencion} = \mathbf{{\${inversion_retencion:,.2f} \text{{ USD}}}}$$
+        $$\text{{Inversión}} = ({TP} + {FP}) \times {costo_retencion} \text{{ USD}} = \mathbf{{{inversion_retencion:,.2f} \text{{ USD}}}}$$
         
     2.  **Valor Económico Recuperado:**
         De los intervenidos, **{TP}** clientes realmente planeaban fugarse ($TP$). Al fidelizarlos, los retenemos y recuperamos su valor ($LTV$ = ${clv_inv:,.2f} USD$).
-        $$\text{{Ingreso Recuperado}} = {TP} \times \${clv_inv} = \mathbf{{\${clientes_retenidos_valor:,.2f} \text{{ USD}}}}$$
+        $$\text{{Ingreso Recuperado}} = {TP} \times {clv_inv} \text{{ USD}} = \mathbf{{{clientes_retenidos_valor:,.2f} \text{{ USD}}}}$$
         
     3.  **Alarmas Falsas ($FP$):**
         Los **{FP}** restantes son clientes leales marcados por error. En ellos gastamos el costo de campaña sin recuperar valor adicional.
         
     4.  **Beneficio Neto del Modelo:**
         Ingreso recuperado menos la inversión realizada en la campaña.
-        $$\text{{Ganancia}} = \${clientes_retenidos_valor:,.2f} - \${inversion_retencion:,.2f} = \mathbf{{\${ganancia_neta_modelo:,.2f} \text{{ USD}}}}$$
+        $$\text{{Ganancia}} = {clientes_retenidos_valor:,.2f} \text{{ USD}} - {inversion_retencion:,.2f} \text{{ USD}} = \mathbf{{{ganancia_neta_modelo:,.2f} \text{{ USD}}}}$$
         
     ---
     
     ### ⚡ Impacto de la IA (Mejora B vs A)
     La diferencia neta a favor del modelo es la suma del beneficio generado más la pérdida evitada:
-    $$\text{{Mejora}} = \${ganancia_neta_modelo:,.2f} - (-\${perdida_escenario_A:,.2f}) = \mathbf{{\${ganancia_neta_modelo + perdida_escenario_A:,.2f} \text{{ USD}}}}$$
+    $$\text{{Mejora}} = {ganancia_neta_modelo:,.2f} \text{{ USD}} - (-{perdida_escenario_A:,.2f} \text{{ USD}}) = \mathbf{{{ganancia_neta_modelo + perdida_escenario_A:,.2f} \text{{ USD}}}}$$
     
     *Pruebe variando los **Parámetros Financieros** o el **Umbral de Riesgo** en la barra lateral para recalcular estas cifras al instante.*
     """)
