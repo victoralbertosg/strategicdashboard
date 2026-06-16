@@ -124,7 +124,7 @@ with col_gui:
     *   **Fugas Reales:** **{TP + FN}** clientes (Verdaderos Positivos **{TP}** + Falsos Negativos **{FN}**).
     *   **Pérdida por Cliente ($LTV$):** ${clv_inv:,.2f} USD$.
     *   **Pérdida Económica Total:** 
-        $$({TP} + {FN}) \times \${clv_inv} = \mathbf{{-${perdida_escenario_A:,.2f} \text{{ USD}}}}$$
+        $$({TP} + {FN}) \times \${clv_inv} = \mathbf{{-\${perdida_escenario_A:,.2f} \text{{ USD}}}}$$
         
     ---
     

@@ -28,8 +28,11 @@ else:
     for name, model in models.items():
         probs = model.predict_proba(X_test_no_id)[:, 1]
         preds = (probs >= st.session_state.umbral).astype(int)
+        from sklearn.metrics import accuracy_score, recall_score
         results[name] = {
             'auc': roc_auc_score(y_test, probs),
+            'accuracy': accuracy_score(y_test, preds),
+            'recall': recall_score(y_test, preds),
             'y_test': y_test,
             'y_pred': preds,
             'y_prob': probs,
@@ -56,10 +59,20 @@ else:
                 st.rerun()
 
         # Tabla de comparación
-        auc_data = {k: v['auc'] for k, v in results.items()}
-        res_df = pd.DataFrame(list(auc_data.items()), columns=['Tipo de IA', 'Puntuación (AUC)'])
-        res_df = res_df.sort_values(by='Puntuación (AUC)', ascending=False).reset_index(drop=True)
-        st.dataframe(res_df.style.highlight_max(subset=['Puntuación (AUC)'], color='lightgreen'))
+        comp_rows = []
+        for name in sorted_names:
+            comp_rows.append({
+                'Tipo de IA': name,
+                'Área Bajo la Curva (AUC)': results[name]['auc'],
+                'Exactitud (Accuracy)': results[name]['accuracy'],
+                'Cobertura (Recall)': results[name]['recall']
+            })
+        res_df = pd.DataFrame(comp_rows)
+        st.dataframe(res_df.style.format({
+            'Área Bajo la Curva (AUC)': '{:.3f}',
+            'Exactitud (Accuracy)': '{:.1%}',
+            'Cobertura (Recall)': '{:.1%}'
+        }).highlight_max(subset=['Área Bajo la Curva (AUC)', 'Exactitud (Accuracy)', 'Cobertura (Recall)'], color='lightgreen', axis=0))
         
         # Gráfico ROC
         fig_roc, ax_roc = plt.subplots(figsize=(8, 4))
