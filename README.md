@@ -55,4 +55,4 @@ El sistema está construido sobre **Streamlit** y se organiza en módulos estrat
 - `requirements.txt`: Dependencias necesarias para el entorno.
 
 ---
-**Nota**: Este repositorio ha sido optimizado para contener únicamente los archivos necesarios para la ejecución del dashboard. La documentación de investigación original se encuentra archivada localmente o en el archivo `README_ORIGINAL.md`.
+

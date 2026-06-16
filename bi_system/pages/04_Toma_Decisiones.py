@@ -21,7 +21,7 @@ if df is None:
 umbral = st.session_state.umbral
 df['Clasificación de Riesgo'] = pd.cut(
     df['Predicted_Prob'], 
-    bins=[0, umbral - 0.2 if umbral > 0.3 else 0.2, umbral, 1.0], 
+    bins=[0, umbral * 0.5, umbral, 1.0], 
     labels=['✅ Estable / Leal', '⚠️ Alerta Amarilla (Preventiva)', '🚨 Alerta Roja (Rescate Urgente)']
 )
 
