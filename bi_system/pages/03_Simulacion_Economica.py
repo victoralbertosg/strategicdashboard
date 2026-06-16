@@ -60,28 +60,7 @@ with col_main:
         st.markdown(f"**Cálculo:** ({TP} × ${clv_inv}) - ({TP + FP} × ${costo_retencion}) = **${ganancia_neta_modelo:,.2f}**")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    st.divider()
-    
-    st.subheader("🔍 Explicación Detallada de los Cálculos")
-    st.markdown(f"""
-    ¿Cómo se llega a estos valores en base al comportamiento de los clientes?
-    
-    1. **Pérdida en Escenario A (Sin Intervención):**
-       - En una estrategia pasiva, no intervenimos a nadie. Por lo tanto, todos los clientes que realmente se iban a fugar se pierden.
-       - El número de clientes que realmente fugan es **{TP + FN}** (Verdaderos Positivos **{TP}** + Falsos Negativos **{FN}**).
-       - Perder a estos clientes nos cuesta su Valor de Vida promedio ($LTV$ = ${clv_inv:,.2f} USD).
-       - **Pérdida Total:** ({TP} + {FN}) × ${clv_inv} = **${perdida_escenario_A:,.2f} USD**.
-       
-    2. **Cálculos en Escenario B (Con Intervención Inteligente):**
-       - La IA identifica en riesgo a **{TP + FP}** clientes (los de Alerta Roja por superar el umbral).
-       - Decidimos realizar una campaña preventiva para este grupo de clientes. Esto nos cuesta ${costo_retencion:,.2f} USD por cada uno.
-       - **Inversión total de campaña:** ({TP} + {FP}) × ${costo_retencion} = **${inversion_retencion:,.2f} USD**.
-       - De los clientes intervenidos, **{TP}** realmente planeaban fugarse ($TP$). Con la campaña preventiva, los retenemos y recuperamos su valor ($LTV$ = ${clv_inv:,.2f} USD).
-       - **Ingreso recuperado:** {TP} × ${clv_inv} = **${clientes_retenidos_valor:,.2f} USD**.
-       - Los **{FP}** restantes son falsas alarmas; gastamos el costo de campaña en ellos pero ya eran leales.
-       - **Beneficio Neto del Modelo:** Ingreso recuperado (${clientes_retenidos_valor:,.2f} USD) menos la inversión de campaña (${inversion_retencion:,.2f} USD) = **${ganancia_neta_modelo:,.2f} USD**.
-       - **Mejora del Escenario B vs A:** La diferencia económica a favor del modelo es el beneficio neto (${ganancia_neta_modelo:,.2f}) menos la pérdida evitada (-${perdida_escenario_A:,.2f}), lo que da un impacto de **${ganancia_neta_modelo + perdida_escenario_A:,.2f} USD**.
-    """)
+
 
     st.divider()
     
@@ -131,19 +110,47 @@ with col_main:
     st.pyplot(fig)
 
 with col_gui:
-    st.info("### 📘 Guía Rápida para Directivos")
-    st.markdown(f"""
-    **¿Cómo gano dinero con la IA?**
-    El modelo le permite elegir a quién llamar para no desperdiciar dinero utilizando estas métricas clave:
+    st.info("### 📘 Guía de Simulación y Cálculos Detallados")
+    st.markdown(fr"""
+    **¿Cómo se llega a estos valores en base al comportamiento de los clientes?**
     
-    *   **TP (Verdaderos Positivos):** Clientes que se iban a ir y la IA detectó con éxito.
-    *   **FN (Falsos Negativos):** Clientes que se fueron sin que la IA los detectara ("Fugas sorpresa").
-    *   **FP (Falsos Positivos):** Clientes leales que la IA marcó erróneamente como riesgo ("Falsas alarmas").
-    *   **LTV (Lifetime Value):** Es el valor promedio que cada cliente aporta a la empresa.
+    El simulador financiero cruza las métricas operativas del modelo con las variables financieras configuradas en el panel de la izquierda.
     
-    *   **Escenario A (Sin IA):** Perdemos a todos los que realmente se van ($TP + FN$) multiplicados por su $LTV$.
-    *   **Escenario B (Con IA):** Recuperamos el valor de los $TP$ pero invertimos el costo en todos los que la IA marcó ($TP + FP$).
-    *   **Beneficio Neto:** Es la ganancia final del modelo al maximizar los $TP$ y minimizar los $FP$.
+    ---
     
-    **Simulación:** Pruebe cambiando el **Costo de Retención** o el **Umbral de Riesgo** a la izquierda para ver cómo las fórmulas y resultados se recalculan al instante.
+    ### 🔴 Escenario A: Sin IA (Pasivo)
+    En una estrategia pasiva, no intervenimos a nadie. Por lo tanto, todos los clientes que realmente se iban a fugar se pierden.
+    
+    *   **Fugas Reales:** **{TP + FN}** clientes (Verdaderos Positivos **{TP}** + Falsos Negativos **{FN}**).
+    *   **Pérdida por Cliente ($LTV$):** ${clv_inv:,.2f} USD$.
+    *   **Pérdida Económica Total:** 
+        $$({TP} + {FN}) \times \${clv_inv} = \mathbf{{-${perdida_escenario_A:,.2f} \text{{ USD}}}}$$
+        
+    ---
+    
+    ### 🟢 Escenario B: Con IA (Intervención Inteligente)
+    Realizamos una campaña de retención preventiva orientada únicamente a los **{TP + FP}** clientes que el modelo predictivo marca como en riesgo.
+    
+    1.  **Inversión en Retención:**
+        Gastamos el Costo de Retención (${costo_retencion:,.2f} USD) por cada uno de los **{TP + FP}** clientes intervenidos.
+        $$\text{{Inversión}} = ({TP} + {FP}) \times \${costo_retencion} = \mathbf{{\${inversion_retencion:,.2f} \text{{ USD}}}}$$
+        
+    2.  **Valor Económico Recuperado:**
+        De los intervenidos, **{TP}** clientes realmente planeaban fugarse ($TP$). Al fidelizarlos, los retenemos y recuperamos su valor ($LTV$ = ${clv_inv:,.2f} USD$).
+        $$\text{{Ingreso Recuperado}} = {TP} \times \${clv_inv} = \mathbf{{\${clientes_retenidos_valor:,.2f} \text{{ USD}}}}$$
+        
+    3.  **Alarmas Falsas ($FP$):**
+        Los **{FP}** restantes son clientes leales marcados por error. En ellos gastamos el costo de campaña sin recuperar valor adicional.
+        
+    4.  **Beneficio Neto del Modelo:**
+        Ingreso recuperado menos la inversión realizada en la campaña.
+        $$\text{{Ganancia}} = \${clientes_retenidos_valor:,.2f} - \${inversion_retencion:,.2f} = \mathbf{{\${ganancia_neta_modelo:,.2f} \text{{ USD}}}}$$
+        
+    ---
+    
+    ### ⚡ Impacto de la IA (Mejora B vs A)
+    La diferencia neta a favor del modelo es la suma del beneficio generado más la pérdida evitada:
+    $$\text{{Mejora}} = \${ganancia_neta_modelo:,.2f} - (-\${perdida_escenario_A:,.2f}) = \mathbf{{\${ganancia_neta_modelo + perdida_escenario_A:,.2f} \text{{ USD}}}}$$
+    
+    *Pruebe variando los **Parámetros Financieros** o el **Umbral de Riesgo** en la barra lateral para recalcular estas cifras al instante.*
     """)
