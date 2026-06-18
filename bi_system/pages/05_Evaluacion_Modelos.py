@@ -28,11 +28,12 @@ else:
     for name, model in models.items():
         probs = model.predict_proba(X_test_no_id)[:, 1]
         preds = (probs >= st.session_state.umbral).astype(int)
-        from sklearn.metrics import accuracy_score, recall_score
+        from sklearn.metrics import accuracy_score, recall_score, f1_score
         results[name] = {
             'auc': roc_auc_score(y_test, probs),
             'accuracy': accuracy_score(y_test, preds),
             'recall': recall_score(y_test, preds),
+            'f1': f1_score(y_test, preds),
             'y_test': y_test,
             'y_pred': preds,
             'y_prob': probs,
@@ -65,14 +66,16 @@ else:
                 'Tipo de IA': name,
                 'Área Bajo la Curva (AUC)': results[name]['auc'],
                 'Exactitud (Accuracy)': results[name]['accuracy'],
-                'Cobertura (Recall)': results[name]['recall']
+                'Cobertura (Recall)': results[name]['recall'],
+                'F1-Score': results[name]['f1'],
             })
         res_df = pd.DataFrame(comp_rows)
         st.dataframe(res_df.style.format({
             'Área Bajo la Curva (AUC)': '{:.3f}',
             'Exactitud (Accuracy)': '{:.1%}',
-            'Cobertura (Recall)': '{:.1%}'
-        }).highlight_max(subset=['Área Bajo la Curva (AUC)', 'Exactitud (Accuracy)', 'Cobertura (Recall)'], color='lightgreen', axis=0))
+            'Cobertura (Recall)': '{:.1%}',
+            'F1-Score': '{:.3f}',
+        }).highlight_max(subset=['Área Bajo la Curva (AUC)', 'Exactitud (Accuracy)', 'Cobertura (Recall)', 'F1-Score'], color='lightgreen', axis=0))
         
         # Gráfico ROC
         fig_roc, ax_roc = plt.subplots(figsize=(8, 4))
