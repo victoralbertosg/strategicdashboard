@@ -44,13 +44,17 @@ with col_main:
     inversion_total = (TP + FP) * costo_ret
     ingreso_recuperado = TP * ingreso_sal
     ganancia_neta = ingreso_recuperado - inversion_total
+    roi = (ganancia_neta / inversion_total) * 100 if inversion_total > 0 else 0.0
 
-    r_col1, r_col2 = st.columns(2)
+    r_col1, r_col2, r_col3 = st.columns(3)
     r_col1.metric("Ganancia Neta Estimada", f"${ganancia_neta:,.2f}")
     r_col1.markdown("**Fórmula:** *Ganancia = (TP × LTV) - (Total_Int × Costo)*")
     
     r_col2.metric("Inversión Requerida", f"${inversion_total:,.2f}")
     r_col2.caption(f"Cálculo: ({TP} + {FP}) × ${costo_ret} = ${inversion_total:,.2f}")
+
+    r_col3.metric("Retorno de la Inversión (ROI)", f"{roi:.2f}%")
+    r_col3.caption("Cálculo: (Ganancia / Inversión) × 100")
 
     st.divider()
 

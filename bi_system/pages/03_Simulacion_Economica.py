@@ -56,6 +56,8 @@ with col_main:
         st.markdown("<div style='background-color:#e6ffe6; padding:15px; border-radius:10px; border-left: 5px solid green; color:#003300;'>", unsafe_allow_html=True)
         st.markdown("### 🟢 Escenario B: Con IA (Intervención)")
         st.metric("Beneficio Neto del Modelo", f"${ganancia_neta_modelo:,.2f}")
+        roi_modelo = (ganancia_neta_modelo / inversion_retencion) * 100 if inversion_retencion > 0 else 0.0
+        st.metric("Retorno sobre la Inversión (ROI)", f"{roi_modelo:.2f}%")
         st.markdown("**Fórmula:** *Ganancia = (TP × LTV) - ((TP + FP) × Costo)*")
         st.markdown(f"**Cálculo:** ({TP} × ${clv_inv}) - ({TP + FP} × ${costo_retencion}) = **${ganancia_neta_modelo:,.2f}**")
         st.markdown("</div>", unsafe_allow_html=True)
